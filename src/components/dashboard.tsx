@@ -46,6 +46,7 @@ export const Dashboard = () => {
                 <Code className="w-5 h-5 text-white" />
               </div>
               <h1 className="text-2xl font-bold">HackSaathi</h1>
+              <span className="text-red-500">Hack</span><span className="text-white">Saathi</span>
             </div>
             
             <div className="flex items-center gap-2">
