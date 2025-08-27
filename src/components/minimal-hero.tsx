@@ -312,10 +312,10 @@ export default function MinimalHero() {
         <div className="text-center mb-16 md:mb-24">
           <div className="inline-flex items-center gap-3 mb-10">
             <div className="relative">
-              <img src="/logo.png" alt="HackSaathi Logo" className="w-14 h-14 rounded-full shadow-lg border-2 border-primary bg-background" />
+
             </div>
-            <h1 className="text-5xl md:text-6xl font-bold text-foreground">
-              HackSaathi
+            <h1 className="text-5xl md:text-6xl font-bold">
+              <span className="text-red-500">Hack</span><span className="text-white">Saathi</span>
             </h1>
           </div>
           <div className="mx-auto w-fit rounded-3xl border-[2px] border-primary/30 px-6 py-3 text-sm text-foreground/80 flex items-center">
