@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { useState, useEffect } from "react";
@@ -153,20 +151,25 @@ export const TeamDetails = ({ teamId }: TeamDetailsProps) => {
         }
 
         if (approve) {
-            const { error: insertError } = await supabase
-                .from('team_members')
-                .insert({ team_id: teamId, user_id: request.user_id, role: 'member' });
-            
-            if (insertError) {
-                 toast.error(`Failed to add member to team`, { description: insertError.message });
-                 await supabase.from('team_join_requests').update({ status: 'pending' }).eq('id', request.id); // Revert
-                 return;
+            // Check if user is already a member
+            const alreadyMember = team?.team_members.some(m => m.users.id === request.user_id);
+            if (!alreadyMember) {
+                const { error: insertError } = await supabase
+                    .from('team_members')
+                    .insert({ team_id: teamId, user_id: request.user_id, role: 'member' });
+                if (insertError) {
+                    toast.error(`Failed to add member to team`, { description: insertError.message });
+                    await supabase.from('team_join_requests').update({ status: 'pending' }).eq('id', request.id); // Revert
+                    return;
+                }
+                await supabase.from('activity_log').insert({ 
+                    user_id: request.user_id, 
+                    action: 'joined team', 
+                    details: { team_name: team?.name } 
+                });
+            } else {
+                toast.info('User is already a team member.');
             }
-             await supabase.from('activity_log').insert({ 
-                user_id: request.user_id, 
-                action: 'joined team', 
-                details: { team_name: team?.name } 
-            });
         }
 
         await supabase.from('notifications').insert({
@@ -324,7 +327,7 @@ export const TeamDetails = ({ teamId }: TeamDetailsProps) => {
                             <CardTitle>Join Requests ({joinRequests.length})</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            {joinRequests.map((req) => (
+                            {joinRequests.filter(req => req.users && req.users[0] && req.users[0].id).map((req) => (
                                 <div key={req.id} className="p-3 border rounded-lg">
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-3">
