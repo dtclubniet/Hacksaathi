@@ -129,8 +129,10 @@ const Header = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-6">
             <Link href="/dashboard" className="flex items-center gap-3">
-              <img src="/logo.png" alt="HackSaathi Logo" className="w-10 h-10 rounded-full shadow-lg border-2 border-primary bg-background" />
-              <h1 className="text-2xl font-bold hidden sm:block">HackSaathi</h1>
+
+              <h1 className="text-2xl font-bold">
+                <span className="text-red-500">Hack</span><span className="text-white">Saathi</span>
+              </h1>
             </Link>
             <nav className="hidden md:flex items-center gap-2">
               {navLinks.map((link) => (
