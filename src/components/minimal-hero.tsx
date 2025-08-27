@@ -312,11 +312,7 @@ export default function MinimalHero() {
         <div className="text-center mb-16 md:mb-24">
           <div className="inline-flex items-center gap-3 mb-10">
             <div className="relative">
-              <div className="w-10 h-10 gradient-primary rounded-xl flex items-center justify-center shadow-soft relative z-10">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-code w-5 h-5 text-primary-foreground"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
-              </div>
-              {/* Red glow effect */}
-              <div className="absolute -inset-3 bg-primary/20 rounded-3xl blur-xl -z-10"></div>
+              <img src="/logo.png" alt="HackSaathi Logo" className="w-14 h-14 rounded-full shadow-lg border-2 border-primary bg-background" />
             </div>
             <h1 className="text-5xl md:text-6xl font-bold text-foreground">
               HackSaathi
