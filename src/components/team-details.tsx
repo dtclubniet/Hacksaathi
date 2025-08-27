@@ -329,10 +329,16 @@ export const TeamDetails = ({ teamId }: TeamDetailsProps) => {
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-3">
                                             <Avatar>
-                                                <AvatarImage src={req.users[0].avatar_url} />
-                                                <AvatarFallback>{req.users[0].full_name[0]}</AvatarFallback>
+                                                {req.users && req.users[0] && req.users[0].avatar_url ? (
+                                                    <AvatarImage src={req.users[0].avatar_url} />
+                                                ) : null}
+                                                <AvatarFallback>
+                                                    {req.users && req.users[0] && req.users[0].full_name ? req.users[0].full_name[0] : '?'}
+                                                </AvatarFallback>
                                             </Avatar>
-                                            <p className="font-semibold">{req.users[0].full_name}</p>
+                                            <p className="font-semibold">
+                                                {req.users && req.users[0] && req.users[0].full_name ? req.users[0].full_name : 'Unknown User'}
+                                            </p>
                                         </div>
                                         <div className="flex gap-2">
                                             <Button size="icon" variant="outline" className="h-8 w-8 border-green-500 text-green-500 hover:bg-green-500 hover:text-white" onClick={() => handleRequest(req, true)}>
