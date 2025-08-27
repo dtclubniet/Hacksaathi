@@ -129,9 +129,7 @@ const Header = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-6">
             <Link href="/dashboard" className="flex items-center gap-3">
-              <div className="w-10 h-10 gradient-primary rounded-xl flex items-center justify-center shadow-soft">
-                <Code className="w-5 h-5 text-white" />
-              </div>
+              <img src="/logo.png" alt="HackSaathi Logo" className="w-10 h-10 rounded-full shadow-lg border-2 border-primary bg-background" />
               <h1 className="text-2xl font-bold hidden sm:block">HackSaathi</h1>
             </Link>
             <nav className="hidden md:flex items-center gap-2">
