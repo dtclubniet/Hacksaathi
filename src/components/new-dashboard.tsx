@@ -1,289 +1,689 @@
-
 'use client';
-import { useState, useEffect } from "react";
+
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { 
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { 
+  Search, 
+  Users, 
+  MessageSquare, 
+  Star,
+  Sparkles,
+  Plus,
+  Crown,
+  Trophy,
+  Info,
   ArrowLeft,
-  Loader2,
-  Search,
-  Users,
+  ArrowRight
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
 import { createClient } from "@/lib/supabase/client";
-import { Input } from "./ui/input";
-import { toast } from "sonner";
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
-import { Textarea } from "./ui/textarea";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { ScrollArea } from "./ui/scroll-area";
+import { Loader2 } from "lucide-react";
+import { ProductTour } from "./product-tour";
+import Image from "next/image";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "./ui/carousel";
+import Autoplay from "embla-carousel-autoplay";
 
-export const Teams = () => {
-  const router = useRouter();
-  const supabase = createClient();
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+
+// Enhanced Background FX Component with theme support
+const BackgroundFX: React.FC = () => {
+  const { theme } = useTheme();
+  const [mounted, setMounted] = React.useState(false);
   
-  const [currentUser, setCurrentUser] = useState<any>(null);
-
-  const [searchQuery, setSearchQuery] = useState("");
-  const [allTeams, setAllTeams] = useState<any[]>([]);
-  const [filteredTeams, setFilteredTeams] = useState<any[]>([]);
-  const [searchLoading, setSearchLoading] = useState(false);
-// Show 5 teams initially, load 10 more on each click
-const [visibleCount, setVisibleCount] = useState(5);
-
-  useEffect(() => {
-    const fetchUserAndTeams = async () => {
-        setSearchLoading(true);
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-            setCurrentUser(user);
-             const { data, error } = await supabase
-                .from('teams')
-                .select('id, name, project_name, banner_url, owner_id, team_members:team_members(count)')
-                .not('owner_id', 'eq', user.id);
-            
-            if (error) {
-                toast.error("Failed to fetch teams", { description: error.message });
-                setAllTeams([]);
-            } else {
-                setAllTeams(data);
-                setFilteredTeams(data);
-            }
-        } else {
-            router.push('/login');
-        }
-        setSearchLoading(false);
-    }
-    fetchUserAndTeams();
-  }, [supabase, router]);
+  // Only show theme-dependent elements after mounting to prevent hydration mismatch
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
   
-
-  const handleSearch = () => {
-  setSearchLoading(true);
-  if (searchQuery.trim() === '') {
-    setFilteredTeams(allTeams);
-  } else {
-    const lowercasedQuery = searchQuery.toLowerCase();
-    const results = allTeams.filter(team => 
-      team.name.toLowerCase().includes(lowercasedQuery) || 
-      team.project_name?.toLowerCase().includes(lowercasedQuery)
-    );
-    setFilteredTeams(results);
-  }
-  setVisibleCount(5); // Reset visible count on new search
-  setSearchLoading(false);
-};
-
-
+  // Only determine theme on client-side to prevent hydration mismatch
+  const isDark = mounted && theme === 'dark';
+  
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-background/80 backdrop-blur-sm sticky top-0 z-50 dark:bg-card/80">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" onClick={() => router.push("/dashboard")}>
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-              <h1 className="text-xl font-semibold">Find a Team</h1>
-            </div>
-          </div>
-        </div>
-      </header>
-
-       {/* Search Bar */}
-       <div className="container mx-auto px-4 pt-4">
-            <div className="relative">
-                <Input 
-                    placeholder="Search for teams by name or project..." 
-                    className="pl-10 h-11" 
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyPress={(e) => {
-                        if (e.key === 'Enter') {
-                            handleSearch();
-                        }
-                    }}
-                />
-                <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-                    <Search className="w-5 h-5 text-muted-foreground" />
-                </div>
-                <Button 
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8"
-                    size="sm"
-                    onClick={handleSearch}
-                    disabled={searchLoading}
-                >
-                    {searchLoading ? <Loader2 className="w-4 h-4 animate-spin"/> : "Search"}
-                </Button>
-            </div>
-        </div>
-
-      {/* Content */}
-      <div className="container mx-auto px-4 py-6">
-        <div>
-            {searchLoading ? (
-                <div className="flex justify-center items-center py-20">
-                    <Loader2 className="w-8 h-8 animate-spin" />
-                </div>
-            ) : filteredTeams.length > 0 ? (
-  <div className="space-y-6">
-    <p className="text-sm text-muted-foreground">{filteredTeams.length} teams found.</p>
-    {filteredTeams.slice(0, visibleCount).map((team) => (
-      <SuggestedTeamCard key={team.id} team={team} currentUser={currentUser} />
-    ))}
-    {visibleCount < filteredTeams.length && (
-      <div className="flex justify-center pt-4">
-        <Button onClick={() => setVisibleCount(visibleCount + 10)}>
-          Load More
-        </Button>
+    <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-background">
+      {/* Red spotlight effect */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-primary/20 blur-[100px] animate-pulse"></div>
+      
+      {/* Star sparkles in background with floating animations - always render but control visibility */}
+      <div className={`absolute inset-0 overflow-hidden transition-opacity duration-300 ${mounted ? (isDark ? 'opacity-100' : 'opacity-0') : 'opacity-0'}`}>
+        <style jsx>{`
+          @keyframes float-up-down {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+          }
+          @keyframes float-left-right {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(10px); }
+          }
+          @keyframes float-diagonal {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(5px, -5px); }
+          }
+          @keyframes twinkle {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 0.8; }
+          }
+        `}</style>
+        
+        {/* Small animated stars */}
+        <div className="absolute top-[15%] left-[10%] w-[2px] h-[2px] rounded-full bg-white opacity-70" style={{ animation: 'twinkle 3s ease-in-out infinite, float-up-down 8s ease-in-out infinite' }}></div>
+        <div className="absolute top-[25%] left-[30%] w-[1px] h-[1px] rounded-full bg-white opacity-50" style={{ animation: 'twinkle 2s ease-in-out infinite, float-left-right 10s ease-in-out infinite' }}></div>
+        <div className="absolute top-[40%] left-[80%] w-[2px] h-[2px] rounded-full bg-white opacity-60" style={{ animation: 'twinkle 4s ease-in-out infinite, float-diagonal 12s ease-in-out infinite' }}></div>
+        <div className="absolute top-[65%] left-[15%] w-[1px] h-[1px] rounded-full bg-white opacity-40" style={{ animation: 'twinkle 3.5s ease-in-out infinite, float-up-down 9s ease-in-out infinite' }}></div>
+        <div className="absolute top-[75%] left-[60%] w-[2px] h-[2px] rounded-full bg-white opacity-70" style={{ animation: 'twinkle 2.5s ease-in-out infinite, float-left-right 11s ease-in-out infinite' }}></div>
       </div>
-    )}
-  </div>
-            ) : (
-                <div className="text-center py-20">
-                    <h3 className="text-lg font-semibold">No Teams Found</h3>
-                    <p className="text-muted-foreground mt-2">No teams matched your search criteria, or there are no teams to join yet.</p>
-                </div>
-            )}
+      
+      {/* 3D perspective grid with enhanced depth */}
+      <div className="pointer-events-none absolute h-full w-full overflow-hidden opacity-70 [perspective:500px]">
+        <div className="absolute inset-0 [transform:rotateX(45deg)]">
+          <div className="absolute animate-grid [inset:0%_0px] [margin-left:-50%] [height:300vh] [width:600vw] [transform-origin:100%_0_0] dark:[background-image:linear-gradient(to_right,rgba(255,50,50,0.1)_1px,transparent_0),linear-gradient(to_bottom,rgba(255,50,50,0.05)_1px,transparent_0)] [background-image:linear-gradient(to_right,rgba(255,0,0,0.05)_1px,transparent_0),linear-gradient(to_bottom,rgba(255,0,0,0.025)_1px,transparent_0)] [background-size:100px_100px] [background-repeat:repeat]"></div>
         </div>
+        
+        {/* Gradient overlay for depth */}
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent to-70%"></div>
+        
+        {/* Side gradients for edge fading */}
+        <div className="absolute inset-y-0 left-0 w-[20%] bg-gradient-to-r from-background to-transparent"></div>
+        <div className="absolute inset-y-0 right-0 w-[20%] bg-gradient-to-l from-background to-transparent"></div>
       </div>
+      
+      {/* Always render the grid and particles, but control visibility with CSS classes */}
+      <div className={`absolute inset-0 bg-grid-red transition-opacity duration-300 ${mounted ? (isDark ? 'opacity-100' : 'opacity-0') : 'opacity-0'}`} />
+      <div className={`absolute inset-0 particles transition-opacity duration-300 ${mounted ? (isDark ? 'opacity-100' : 'opacity-0') : 'opacity-0'}`} />
     </div>
   );
 };
 
-
-const SuggestedTeamCard = ({ team, currentUser }: { team: any, currentUser: any }) => {
+const SIHInfoDisplay = () => {
+    const [info, setInfo] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+    const [isExpanded, setIsExpanded] = useState(false);
     const supabase = createClient();
-    const router = useRouter();
-    const [requestStatus, setRequestStatus] = useState<'idle' | 'pending' | 'requested'>('idle');
-    const [proposal, setProposal] = useState("");
-    const [teamMembers, setTeamMembers] = useState<any[]>([]);
-    const [loadingMembers, setLoadingMembers] = useState(false);
 
     useEffect(() => {
-        const checkRequestStatus = async () => {
-            if (!currentUser) return;
-             const { data } = await supabase
-                .from('team_join_requests')
-                .select('id')
-                .eq('team_id', team.id)
-                .eq('user_id', currentUser.id)
-                .eq('status', 'pending')
-                .eq('type', 'join_request') // Only check for user-initiated requests
-                .maybeSingle();
-            if (data) {
-                setRequestStatus('requested');
+        const fetchSihInfo = async () => {
+            setLoading(true);
+            const { data, error } = await supabase
+                .from('sih_info')
+                .select('*')
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .single();
+            
+            if (error && error.code !== 'PGRST116') { // Ignore no rows found error
+                console.error("Error fetching SIH info", error);
+            } else {
+                setInfo(data);
             }
+            setLoading(false);
         };
-        checkRequestStatus();
-    }, [currentUser, team.id, supabase]);
+        fetchSihInfo();
+    }, [supabase]);
 
-    const handleFetchMembers = async () => {
-        setLoadingMembers(true);
-        const { data, error } = await supabase
-            .from('team_members')
-            .select('users(id, full_name, avatar_url)')
-            .eq('team_id', team.id);
-        
-        if (error) {
-            toast.error("Could not fetch team members.");
-        } else {
-            setTeamMembers(data.map(m => m.users));
-        }
-        setLoadingMembers(false);
+    if (loading) {
+        return (
+             <Card className="card-hover bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 backdrop-blur-md border-primary/20 overflow-hidden group w-full max-w-4xl mx-auto flex justify-center items-center h-60">
+                 <Loader2 className="animate-spin h-8 w-8 text-primary"/>
+            </Card>
+        );
+    }
+    
+    if (!info) {
+        // Render a default attractive banner
+        return (
+            <section aria-labelledby="platform-banner" className="w-full max-w-4xl mx-auto">
+                <Card 
+                    className="card-hover bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 backdrop-blur-md border-primary/20 overflow-hidden group cursor-pointer transition-all duration-300 hover:shadow-lg hover:border-primary/30"
+                    onClick={() => setIsExpanded(!isExpanded)}
+                >
+                    <div className="p-6">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
+                                   <Image 
+    src="/your-logo.png" 
+    alt="HackSaathi Logo" 
+    width={64}
+    height={64}
+    className="w-6 h-6 object-contain"
+/>
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-xl text-primary">HackSaathi Platform</h3>
+                                    <p className="text-sm text-muted-foreground">Your gateway to innovation and collaboration</p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+    <Badge className="bg-primary/20 text-primary border-primary/30">
+        <Sparkles className="w-3 h-3 mr-1" />
+        Active
+    </Badge>
+    <Button 
+        variant="outline" 
+        size="sm"
+        onClick={(e) => {
+            e.stopPropagation();
+            window.location.href = '/teams';
+        }}
+        className="border-primary/30 text-primary hover:bg-primary/10"
+    >
+        Explore Teams
+    </Button>
+    <ArrowRight className={`w-5 h-5 text-primary transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`} />
+</div>
+                        </div>
+                        
+                        {isExpanded && (
+                            <div className="mt-6 pt-6 border-t border-primary/20 animate-fade-in">
+                                <div className="flex items-center gap-2 mb-4">
+                                    <Button 
+                                        variant="ghost" 
+                                        size="sm"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setIsExpanded(false);
+                                        }}
+                                        className="text-primary hover:bg-primary/10"
+                                    >
+                                        <ArrowLeft className="w-4 h-4 mr-1" />
+                                        Back
+                                    </Button>
+                                </div>
+                                <div className="grid md:grid-cols-2 gap-6">
+                                    <div>
+                                        <h4 className="font-semibold text-primary mb-2">Platform Features</h4>
+                                        <ul className="space-y-2 text-sm text-muted-foreground">
+                                            <li className="flex items-center gap-2">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
+                                                AI-powered teammate matching
+                                            </li>
+                                            <li className="flex items-center gap-2">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
+                                                Real-time team collaboration
+                                            </li>
+                                            <li className="flex items-center gap-2">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
+                                                Smart project discovery
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <div>
+                                        <h4 className="font-semibold text-primary mb-2">Quick Stats</h4>
+                                        <div className="grid grid-cols-2 gap-3 text-sm">
+                                            <div className="bg-primary/5 rounded-lg p-3 text-center">
+                                                <div className="font-bold text-primary">1000+</div>
+                                                <div className="text-muted-foreground">Users</div>
+                                            </div>
+                                            <div className="bg-primary/5 rounded-lg p-3 text-center">
+                                                <div className="font-bold text-primary">250+</div>
+                                                <div className="text-muted-foreground">Teams</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </Card>
+            </section>
+        );
     }
 
-    const handleRequestToJoin = async () => {
-        if (!currentUser) {
-            toast.error("You must be logged in to join a team.");
-            return;
+    return (
+    <section aria-labelledby="sih-announcement" className="w-full max-w-4xl mx-auto">
+         <Card 
+            className="card-hover bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 backdrop-blur-md border-primary/20 overflow-hidden group cursor-pointer transition-all duration-300 hover:shadow-lg hover:border-primary/30"
+            onClick={() => setIsExpanded(!isExpanded)}
+         >
+             {info.image_url && !isExpanded && (
+                <div className="relative w-full aspect-[16/9] sm:aspect-[21/9] lg:aspect-[3/1]">
+                    <Image 
+                        src={info.image_url} 
+                        alt={info.title} 
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                    <div className="absolute bottom-4 left-4 right-4 sm:left-6 sm:right-6">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/20 backdrop-blur-sm flex items-center justify-center">
+                                    <Image 
+    src="/your-logo.png" 
+    alt="HackSaathi Logo" 
+    width={64}
+    height={64}
+    className="w-4 h-4 sm:w-5 sm:h-5 object-contain"
+/>
+                                </div>
+                                <Badge className="bg-primary/20 backdrop-blur-sm text-white border-white/30 text-xs sm:text-sm">
+                                    Read Problem Statement
+                                </Badge>
+                            </div>
+                            <Button 
+                                variant="secondary" 
+                                size="sm"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    window.location.href = '/teams';
+                                }}
+                                className="bg-white/20 backdrop-blur-sm text-white border-white/30 hover:bg-white/30 text-xs sm:text-sm"
+                            >
+                                Read Problem Statement
+                            </Button>
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <h3 className="font-bold text-lg sm:text-xl text-white line-clamp-2">{info.title}</h3>
+                            <ArrowRight className={`w-5 h-5 text-white ml-2 transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`} />
+                        </div>
+                    </div>
+                </div>
+             )}
+             
+             <div className="p-4 sm:p-6">
+                {!info.image_url && (
+                    <div className="flex items-center justify-between flex-wrap gap-3">
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                                <Image 
+    src="/your-logo.png" 
+    alt="HackSaathi Logo" 
+    width={64}
+    height={64}
+    className="w-4 h-4 sm:w-5 sm:h-5 object-contain"
+/>
+                            </div>
+                            <div className="min-w-0 flex-1">
+                                <h3 className="font-bold text-lg sm:text-xl text-primary truncate">{info.title}</h3>
+                                <Badge className="bg-primary/20 text-primary border-primary/30 mt-1 text-xs sm:text-sm">
+                                    Latest News
+                                </Badge>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                            <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    window.location.href = 'https://sih.gov.in/sih2025PS';
+                                }}
+                                className="border-primary/30 text-primary hover:bg-primary/10 text-xs sm:text-sm"
+                            >
+                                Read Problem Statement
+                            </Button>
+                            <ArrowRight className={`w-5 h-5 text-primary transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`} />
+                        </div>
+                    </div>
+                )}
+                
+                {isExpanded ? (
+                    <div className="space-y-4 animate-fade-in">
+                        <div className="flex items-center gap-2 mb-4">
+                            <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setIsExpanded(false);
+                                }}
+                                className="text-primary hover:bg-primary/10"
+                            >
+                                <ArrowLeft className="w-4 h-4 mr-1" />
+                                Back
+                            </Button>
+                        </div>
+                        {info.image_url && (
+                            <div className="relative w-full aspect-video rounded-lg overflow-hidden">
+                                <Image 
+                                    src={info.image_url} 
+                                    alt={info.title} 
+                                    fill
+                                    className="object-cover"
+                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                />
+                            </div>
+                        )}
+                        <div>
+                            <h3 className="font-bold text-xl sm:text-2xl text-primary mb-3">{info.title}</h3>
+                            <p className="text-muted-foreground leading-relaxed text-sm sm:text-base">{info.content}</p>
+                        </div>
+                    </div>
+                ) : !info.image_url && (
+                    <div className="mt-3">
+                        <p className="text-sm text-muted-foreground line-clamp-2">
+                            {info.content}
+                        </p>
+                    </div>
+                )}
+             </div>
+         </Card>
+    </section>
+);
+};
+
+
+// Quick Actions Component
+const QuickActions: React.FC = () => {
+  const actions = [
+    { title: "PeerJet", subtitle: "AI Teammate Finder", icon: <Sparkles className="w-5 h-5" />, href: "/profile/finder" },
+    { title: "Discover", subtitle: "Find teammates", icon: <Star className="w-5 h-5" />, href: "/discover" },
+    { title: "Find a Team", subtitle: "Team search", icon: <Users className="w-5 h-5" />, href: "/teams" },
+    { title: "Chat", subtitle: "Messages", icon: <MessageSquare className="w-5 h-5" />, href: "/chat" },
+  ];
+
+  return (
+    <section aria-labelledby="quick-actions" className="space-y-4" data-tour="quick-actions">
+      <h2 id="quick-actions" className="text-xl font-semibold">Quick Actions</h2>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {actions.map((a) => (
+          <Card
+            key={a.title}
+            role="button"
+            tabIndex={0}
+            onClick={() => window.location.href = a.href}
+            className="group card-hover bg-card border-border p-6 hover:animate-glow-pulse focus:animate-glow-pulse"
+          >
+            <div className="flex items-center gap-4">
+              <div className="size-12 rounded-xl flex items-center justify-center bg-[radial-gradient(circle_at_30%_30%,hsl(var(--primary)/0.25),transparent_60%)]">
+                <div className="transition-transform duration-200 group-hover:scale-110">
+                  {a.icon}
+                </div>
+              </div>
+              <div>
+                <div className="font-semibold">{a.title}</div>
+                <div className="text-sm text-muted-foreground">{a.subtitle}</div>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
+    </section>
+  );
+};
+
+// Activity Feed Component
+const ActivityFeed: React.FC = () => {
+  const [activities, setActivities] = useState<any[]>([]);
+  const supabase = createClient();
+
+  useEffect(() => {
+    const fetchActivities = async () => {
+        const {data: { user }} = await supabase.auth.getUser();
+        if (!user) return;
+
+        const {data, error} = await supabase
+            .from('activity_log')
+            .select('*, user:users(full_name, avatar_url)')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false });
+        if (error) {
+            console.error("Error fetching activities", error);
+        } else {
+            setActivities(data);
         }
-        setRequestStatus('pending');
+    }
+    fetchActivities();
+  }, [supabase]);
 
-        try {
-            const { error } = await supabase.rpc('request_to_join_team', {
-                p_team_id: team.id,
-                p_proposal: proposal || null
-            });
-            if (error) throw error;
-            
-            toast.success("Your request to join has been sent!");
-            setRequestStatus('requested');
+  const timeSince = (date: string) => {
+    const seconds = Math.floor((new Date().getTime() - new Date(date).getTime()) / 1000);
+    let interval = seconds / 31536000;
+    if (interval > 1) return Math.floor(interval) + "y";
+    interval = seconds / 2592000;
+    if (interval > 1) return Math.floor(interval) + "mo";
+    interval = seconds / 86400;
+    if (interval > 1) return Math.floor(interval) + "d";
+    interval = seconds / 3600;
+    if (interval > 1) return Math.floor(interval) + "h";
+    interval = seconds / 60;
+    if (interval > 1) return Math.floor(interval) + "m";
+    return Math.floor(seconds) + "s";
+  }
+  
+  const displayedActivities = activities.slice(0, 4);
 
-        } catch (error: any) {
-             if (error.message.includes('already a member')) {
-                toast.info("You are already a member of this team.");
-            } else if (error.message.includes('already requested')) {
-                toast.info("You have already sent a request to join this team.");
-            } else {
-                toast.error("Failed to send join request.", { description: error.message });
+  return (
+    <section aria-labelledby="recent-activity" className="space-y-4" data-tour="recent-activity">
+      <h2 id="recent-activity" className="text-xl font-semibold">Recent Activity</h2>
+       {activities.length > 4 ? (
+            <ScrollArea className="h-72 pr-4">
+                <div className="space-y-3">
+                    {activities.map((it) => (
+                    <Card key={it.id} className="bg-card border-border px-5 py-4 animate-fade-in card-hover">
+                        <div className="flex items-center justify-between gap-4">
+                            <div className="flex items-center gap-3">
+                                <Avatar className="w-8 h-8">
+                                    <AvatarImage src={it.user?.avatar_url} />
+                                    <AvatarFallback>{it.user?.full_name?.[0]}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                <div className="font-medium text-sm">
+                                    You {it.action} <span className="font-bold">{it.details?.team_name || it.details?.to || ''}</span>
+                                </div>
+                                </div>
+                            </div>
+                            <span className="text-sm text-muted-foreground whitespace-nowrap">{timeSince(it.created_at)}</span>
+                        </div>
+                    </Card>
+                    ))}
+                </div>
+            </ScrollArea>
+       ) : activities.length > 0 ? (
+          <div className="space-y-3">
+            {displayedActivities.map((it) => (
+              <Card key={it.id} className="bg-card border-border px-5 py-4 animate-fade-in card-hover">
+                <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                        <Avatar className="w-8 h-8">
+                            <AvatarImage src={it.user?.avatar_url} />
+                            <AvatarFallback>{it.user?.full_name?.[0]}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                        <div className="font-medium text-sm">
+                            You {it.action} <span className="font-bold">{it.details?.team_name || it.details?.to || ''}</span>
+                        </div>
+                        </div>
+                    </div>
+                    <span className="text-sm text-muted-foreground whitespace-nowrap">{timeSince(it.created_at)}</span>
+                </div>
+              </Card>
+            ))}
+          </div>
+       ) : (
+          <p className="text-muted-foreground text-sm">No recent activity yet.</p>
+       )}
+    </section>
+  );
+};
+
+// My Teams Component
+const MyTeams = () => {
+    const [myTeams, setMyTeams] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const supabase = createClient();
+    const router = useRouter();
+    const [currentUser, setCurrentUser] = useState<any>(null);
+
+
+    useEffect(() => {
+        const fetchMyTeams = async () => {
+            setLoading(true);
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                setLoading(false);
+                return;
             }
-            setRequestStatus('idle');
+            setCurrentUser(user);
+
+            const { data: teamIds } = await supabase
+                .from('team_members')
+                .select('team_id')
+                .eq('user_id', user.id);
+
+            if (teamIds && teamIds.length > 0) {
+                const ids = teamIds.map(t => t.team_id);
+                const { data: teamsData, error } = await supabase
+                    .from('teams')
+                    .select('*, team_members(count)')
+                    .in('id', ids);
+
+                if (error) {
+                    console.error(error);
+                } else {
+                    setMyTeams(teamsData);
+                }
+            } else {
+                 setMyTeams([]);
+            }
+            setLoading(false);
+        };
+        fetchMyTeams();
+    }, [supabase]);
+    
+    return (
+        <section aria-labelledby="my-teams" className="space-y-4" data-tour="my-teams">
+            <div className="flex items-center justify-between">
+                <h2 id="my-teams" className="text-xl font-semibold">My Teams</h2>
+                <Button variant="outline" size="sm" asChild>
+                    <Link href="/teams/create"><Plus className="mr-2 h-4 w-4" />Create Team</Link>
+                </Button>
+            </div>
+            {loading ? (
+                <div className="flex justify-center items-center h-24">
+                    <Loader2 className="w-6 h-6 animate-spin" />
+                </div>
+            ) : myTeams.length > 0 ? (
+                <div className="grid gap-6 md:grid-cols-2">
+                    {myTeams.slice(0, 4).map((team) => (
+                        <Card key={team.id} className="card-hover bg-card border-border overflow-hidden">
+                            <Link href={`/teams/${team.id}`} className="block h-full">
+                                <div className="p-6 h-full flex flex-col">
+                                    <div className="flex items-start justify-between">
+                                        <div className="flex items-start gap-4">
+                                            <Avatar className="size-10 rounded-xl">
+                                                <AvatarImage src={team.banner_url} className="object-cover" />
+                                                <AvatarFallback><Users className="size-5" /></AvatarFallback>
+                                            </Avatar>
+                                            <div className="flex-1">
+                                                <h3 className="font-semibold">{team.name}</h3>
+                                                <p className="text-sm text-muted-foreground">{team.project_name}</p>
+                                            </div>
+                                        </div>
+                                         {currentUser?.id === team.owner_id && (
+                                            <Badge variant="secondary" className="text-xs font-medium border-yellow-500/50 text-yellow-600">
+                                                <Crown className="w-3 h-3 mr-1.5" />
+                                                Owner
+                                            </Badge>
+                                        )}
+                                    </div>
+                                    <div className="flex items-center justify-between mt-4">
+                                        <div className="flex -space-x-2">
+                                            <Badge variant="outline">{team.team_members[0].count} / {team.member_limit} members</Badge>
+                                        </div>
+                                    </div>
+                                </div>
+                            </Link>
+                        </Card>
+                    ))}
+                </div>
+            ) : (
+                 <Card className="flex flex-col items-center justify-center p-8 text-center bg-card border-border">
+                    <p className="text-sm text-muted-foreground mb-4">You haven't joined any teams yet.</p>
+                    <Button onClick={() => router.push('/teams')}>Find a Team</Button>
+                </Card>
+            )}
+        </section>
+    );
+};
+
+// Main Dashboard Component
+export const NewDashboard = () => {
+    const supabase = createClient();
+    const [loading, setLoading] = useState(true);
+    const [showTour, setShowTour] = useState(false);
+    const [user, setUser] = useState<any>(null);
+
+    useEffect(() => {
+        const checkTourStatus = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                setUser(user);
+                const { data: profile, error } = await supabase
+                    .from('users')
+                    .select('has_completed_tour')
+                    .eq('id', user.id)
+                    .single();
+                
+                if (error) {
+                    console.error("Error fetching tour status", error);
+                } else if (profile && !profile.has_completed_tour) {
+                    setShowTour(true);
+                }
+            }
+            setLoading(false);
+        };
+        checkTourStatus();
+    }, [supabase]);
+
+    const handleTourComplete = async () => {
+        setShowTour(false);
+        if (user) {
+            await supabase
+                .from('users')
+                .update({ has_completed_tour: true })
+                .eq('id', user.id);
         }
     };
     
-    return (
-        <Card className="p-6 hover-lift border-0 shadow-soft bg-card dark:bg-card">
-            <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
-                <div 
-                    className="flex items-start gap-4 flex-1 cursor-pointer" 
-                    onClick={() => router.push(`/teams/${team.id}`)}
-                >
-                    <Avatar className="w-12 h-12">
-                        <AvatarImage src={team.banner_url} />
-                        <AvatarFallback>{team.name?.[0]}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                        <h3 className="font-semibold text-lg">{team.name}</h3>
-                        <p className="text-sm text-muted-foreground">{team.project_name}</p>
-                    </div>
-                </div>
-                <Dialog onOpenChange={(open) => open && handleFetchMembers()}>
-                    <DialogTrigger asChild>
-                         <Button disabled={requestStatus !== 'idle'} className="w-full sm:w-auto">
-                            {requestStatus === 'pending' && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                            {requestStatus === 'requested' ? 'Request Sent' : 'Request to Join'}
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>Request to join {team.name}</DialogTitle>
-                            <DialogDescription>
-                                You can include an optional message to the team owner. This team has {teamMembers.length > 0 ? teamMembers.length : team.team_members[0]?.count || 0} member(s).
-                            </DialogDescription>
-                        </DialogHeader>
-                         <div className="space-y-3">
-                            <h4 className="font-medium text-sm">Current Members</h4>
-                            {loadingMembers ? <Loader2 className="w-5 h-5 animate-spin" /> : (
-                                <div className="flex flex-wrap gap-4">
-                                    {teamMembers && teamMembers.length > 0 ? teamMembers.map(member => (
-                                        <div key={member?.id} className="flex flex-col items-center gap-1">
-                                            <Avatar>
-                                                <AvatarImage src={member?.avatar_url} />
-                                                <AvatarFallback>{member?.full_name?.[0]}</AvatarFallback>
-                                            </Avatar>
-                                            <p className="text-xs text-muted-foreground">{member?.full_name?.split(' ')[0]}</p>
-                                        </div>
-                                    )) : <p className="text-xs text-muted-foreground">No members found.</p>}
-                                </div>
-                            )}
-                        </div>
-                        <Textarea 
-                            placeholder="Why would you be a good fit for this team? (Optional)"
-                            value={proposal}
-                            onChange={(e) => setProposal(e.target.value)}
-                        />
-                        <DialogFooter>
-                            <DialogClose asChild>
-                                <Button variant="ghost">Cancel</Button>
-                            </DialogClose>
-                            <DialogClose asChild>
-                                <Button onClick={handleRequestToJoin}>Send Request</Button>
-                            </DialogClose>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <Loader2 className="w-8 h-8 animate-spin" />
             </div>
-        </Card>
-    )
+        );
+    }
+
+  return (
+    <div className="min-h-screen bg-background text-foreground">
+      <BackgroundFX />
+      {showTour && <ProductTour onComplete={handleTourComplete} />}
+      
+      <main className="container mx-auto px-4 pb-16 space-y-10 pt-6 relative z-10">
+         <div role="search" aria-label="Global search" className="pb-4" data-tour="search">
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 size-5 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Search teams, people, or projects..."
+              className="h-12 rounded-2xl pl-12 text-base placeholder:text-muted-foreground bg-muted/50 border-input focus-visible:ring-1 focus-visible:ring-primary"
+              aria-label="Search"
+            />
+          </div>
+        </div>
+
+        <div className="space-y-12">
+            <SIHInfoDisplay />
+            <QuickActions />
+            <MyTeams />
+            <ActivityFeed />
+        </div>
+      </main>
+    </div>
+  );
 };
