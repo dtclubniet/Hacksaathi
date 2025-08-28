@@ -1,2 +1,0 @@
--- This file has been replaced by database_reset.sql and is now deprecated.
--- Please use src/database_reset.sql for all future database setup and resets.
