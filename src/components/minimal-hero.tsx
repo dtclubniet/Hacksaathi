@@ -315,7 +315,7 @@ export default function MinimalHero() {
 
             </div>
             <h1 className="text-5xl md:text-6xl font-bold">
-              <span className="text-red-500">Hack</span><span className="text-white">Saathi</span>
+              <span className="text-red-500">Hack</span><span className="text-black dark:text-white">Saathi</span>
             </h1>
           </div>
           <div className="mx-auto w-fit rounded-3xl border-[2px] border-primary/30 px-6 py-3 text-sm text-foreground/80 flex items-center">
