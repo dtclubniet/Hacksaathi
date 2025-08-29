@@ -131,7 +131,7 @@ const Header = () => {
             <Link href="/dashboard" className="flex items-center gap-3">
 
               <h1 className="text-2xl font-bold">
-                <span className="text-red-500">Hack</span><span className="text-white">Saathi</span>
+                <span className="text-red-500">Hack</span><span className="text-black dark:text-white">Saathi</span>
               </h1>
             </Link>
             <nav className="hidden md:flex items-center gap-2">
