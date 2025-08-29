@@ -124,7 +124,7 @@ export function LoginForm() {
             <div className="absolute -inset-3 bg-primary/20 rounded-3xl blur-xl -z-10"></div>
           </div>
           <h1 className="text-4xl font-bold text-foreground">
-            HackSaathi
+            <span className="text-red-500">Hack</span><span className="text-black dark:text-white">Saathi</span>
           </h1>
         </div>
 
