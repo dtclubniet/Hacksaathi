@@ -94,6 +94,10 @@ export function ProfileCreate() {
     fetchUser();
   }, [router, supabase]);
 
+  const handleBackToStep = (targetStep: Step) => {
+  setCurrentStep(targetStep);
+};
+
   const handleNextStep = async (nextStep: Step, userInput?: React.ReactNode) => {
     startTransition(async () => {
       // Validation and Proctoring
@@ -319,9 +323,12 @@ export function ProfileCreate() {
                     </Button>
                     <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handlePhotoUpload} />
                  </div>
-                 <div className='mt-4 flex gap-2'>
-                    <Button variant="ghost" onClick={() => setCurrentStep('name')}><ChevronLeft className='w-4 h-4 mr-1' /> Back</Button>
-                 </div>
+                 <div className='mt-4 flex gap-2 justify-between'>
+   <Button variant="ghost" onClick={() => handleBackToStep('name')}><ChevronLeft className='w-4 h-4 mr-1' /> Back</Button>
+   <Button variant="outline" onClick={() => handleNextStep('location', <span className="text-muted-foreground">Skipped photo upload</span>)}>
+     Skip for now
+   </Button>
+</div>
             </Message>
         );
       case 'location':
