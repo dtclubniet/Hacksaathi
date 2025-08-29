@@ -60,7 +60,7 @@ type JoinRequest = {
     user_id: string;
     proposal: string | null;
     type: 'join_request' | 'invitation';
-    users: User[];
+    users: User;
 }
 
 export const TeamDetails = ({ teamId }: TeamDetailsProps) => {
@@ -75,7 +75,7 @@ export const TeamDetails = ({ teamId }: TeamDetailsProps) => {
     const fetchJoinRequests = async () => {
         const { data: requestsData, error: requestsError } = await supabase
             .from('team_join_requests')
-            .select('id, user_id, proposal, type, users ( id, full_name, avatar_url )')
+            .select('*, users:user_id ( id, full_name, avatar_url )')
             .eq('team_id', teamId)
             .eq('status', 'pending')
             .eq('type', 'join_request'); // Only fetch actual join requests
@@ -84,7 +84,7 @@ export const TeamDetails = ({ teamId }: TeamDetailsProps) => {
             toast.error("Failed to fetch join requests.", { description: requestsError.message });
             return;
         }
-        setJoinRequests(requestsData as JoinRequest[]);
+        console.log("Join requests data:", requestsData); setJoinRequests(requestsData as JoinRequest[]);
     };
 
     const fetchTeamDetails = async () => {
@@ -188,7 +188,7 @@ export const TeamDetails = ({ teamId }: TeamDetailsProps) => {
             {
                 user_id: currentUser.id,
                 action: `${approve ? 'approved' : 'declined'} request from`,
-                details: { to: request.users[0].full_name, team_name: team?.name }
+                details: { to: request.users.full_name, team_name: team?.name }
             }
         ]);
         
@@ -327,20 +327,18 @@ export const TeamDetails = ({ teamId }: TeamDetailsProps) => {
                             <CardTitle>Join Requests ({joinRequests.length})</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            {joinRequests.filter(req => req.users && req.users[0] && req.users[0].id).map((req) => (
+                            {joinRequests.filter(req => req.users && req.users.id).map((req) => (
                                 <div key={req.id} className="p-3 border rounded-lg">
-                                    <div className="flex items-center justify-between">ss
+                                    <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-3">
                                             <Avatar>
-                                                {req.users && req.users[0] && req.users[0].avatar_url ? (
-                                                    <AvatarImage src={req.users[0].avatar_url} />
-                                                ) : null}
+                                                {req.users && req.users.avatar_url ? ( <AvatarImage src={req.users.avatar_url} /> ) : null}
                                                 <AvatarFallback>
-                                                    {req.users && req.users[0] && req.users[0].full_name ? req.users[0].full_name[0] : '?'}
+                                                    {req.users && req.users.full_name ? req.users.full_name[0] : '?'}
                                                 </AvatarFallback>
                                             </Avatar>
                                             <p className="font-semibold">
-                                                {req.users && req.users[0] && req.users[0].full_name ? req.users[0].full_name : 'Unknown User'}
+                                                {req.users && req.users.full_name ? req.users.full_name : 'Unknown User'}
                                             </p>
                                         </div>
                                         <div className="flex gap-2">
@@ -494,3 +492,13 @@ export const TeamDetails = ({ teamId }: TeamDetailsProps) => {
         </div>
     );
 };
+
+
+
+
+
+
+
+
+
+
