@@ -289,24 +289,24 @@ const UserProfile = ({ params }: { params: { id: string } }) => {
         <Card className="p-6 border-0 shadow-soft bg-card">
           <h3 className="text-lg font-semibold mb-4">Contact & Links</h3>
           <div className="space-y-3">
-            {profileData.github_url && <div className="flex items-center gap-3">
-              <Github className="w-5 h-5" />
-              <a href={profileData.github_url} className="text-sm text-primary hover:underline" target="_blank" rel="noopener noreferrer">
-                {profileData.github_url}
-              </a>
-            </div>}
-            {profileData.linkedin_url && <div className="flex items-center gap-3">
-              <Linkedin className="w-5 h-5" />
-              <a href={profileData.linkedin_url} className="text-sm text-primary hover:underline" target="_blank" rel="noopener noreferrer">
-                {profileData.linkedin_url}
-              </a>
-            </div>}
-            {profileData.portfolio_url && <div className="flex items-center gap-3">
-              <Globe className="w-5 h-5" />
-              <a href={profileData.portfolio_url} className="text-sm text-primary hover:underline" target="_blank" rel="noopener noreferrer">
-                {profileData.portfolio_url}
-              </a>
-            </div>}
+            {profileData.github_url && <div className="flex items-center gap-3 min-w-0">
+  <Github className="w-5 h-5 flex-shrink-0" />
+  <a href={profileData.github_url} className="text-sm text-primary hover:underline truncate" target="_blank" rel="noopener noreferrer" title={profileData.github_url}>
+    {profileData.github_url.replace('https://', '').replace('http://', '')}
+  </a>
+</div>}
+{profileData.linkedin_url && <div className="flex items-center gap-3 min-w-0">
+  <Linkedin className="w-5 h-5 flex-shrink-0" />
+  <a href={profileData.linkedin_url} className="text-sm text-primary hover:underline truncate" target="_blank" rel="noopener noreferrer" title={profileData.linkedin_url}>
+    {profileData.linkedin_url.replace('https://', '').replace('http://', '')}
+  </a>
+</div>}
+{profileData.portfolio_url && <div className="flex items-center gap-3 min-w-0">
+  <Globe className="w-5 h-5 flex-shrink-0" />
+  <a href={profileData.portfolio_url} className="text-sm text-primary hover:underline truncate" target="_blank" rel="noopener noreferrer" title={profileData.portfolio_url}>
+    {profileData.portfolio_url.replace('https://', '').replace('http://', '')}
+  </a>
+</div>}
           </div>
         </Card>
 
